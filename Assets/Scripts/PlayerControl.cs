@@ -1,16 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerControl : MonoBehaviour
 {
     public float idleTime = 10f;
-
+    public float moveSpeed = 5f;
+    public Vector2 moveInput = new Vector2(0f, 0f);
     private float idleTimer;
+    public CharacterController characterController;
     Animator playerAnimator;
     // Start is called before the first frame update
     void Start()
     {
+        characterController = GetComponent<CharacterController>();
         playerAnimator = GetComponentInChildren<Animator>();
         idleTimer = idleTime;
     }
@@ -24,5 +28,19 @@ public class PlayerControl : MonoBehaviour
             playerAnimator.SetTrigger("IdleLong");
             idleTimer = idleTime;
         }
+
+        Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+
+        if(direction.magnitude >= 0.1f){
+            characterController.Move(direction * moveSpeed * Time.deltaTime);
+        }
     }
+
+    public void playerMove(InputAction.CallbackContext context) {
+        if(context.performed){
+            moveInput = (context.ReadValue<Vector2>());
+        }
+    }
+
+    
 }
