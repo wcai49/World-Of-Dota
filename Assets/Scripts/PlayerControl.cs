@@ -11,6 +11,7 @@ public class PlayerControl : MonoBehaviour
     private float idleTimer;
     public CharacterController characterController;
     Animator playerAnimator;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -32,13 +33,23 @@ public class PlayerControl : MonoBehaviour
         Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
 
         if(direction.magnitude >= 0.1f){
+            playerAnimator.SetBool("isMoving", true);
+            
             characterController.Move(direction * moveSpeed * Time.deltaTime);
+        }
+        else
+        {
+            playerAnimator.SetBool("isMoving", false);
         }
     }
 
     public void playerMove(InputAction.CallbackContext context) {
         if(context.performed){
             moveInput = (context.ReadValue<Vector2>());
+        }
+        if(context.canceled)
+        {
+            moveInput = new Vector2(0f,0f);
         }
     }
 
