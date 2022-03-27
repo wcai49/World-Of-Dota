@@ -16,7 +16,7 @@ public class PlayerControl : MonoBehaviour
     void Start()
     {
         characterController = GetComponent<CharacterController>();
-        playerAnimator = GetComponentInChildren<Animator>();
+        playerAnimator = GetComponent<Animator>();
         idleTimer = idleTime;
     }
 
@@ -33,13 +33,23 @@ public class PlayerControl : MonoBehaviour
         Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
 
         if(direction.magnitude >= 0.1f){
-            playerAnimator.SetBool("isMoving", true);
+            if(moveInput.y < 0)
+            {
+                playerAnimator.SetBool("isBack", true);
+                characterController.Move(direction * moveSpeed * 0.3f * Time.deltaTime);
+            }
+            else
+            {
+                playerAnimator.SetBool("isMoving", true);
+                characterController.Move(direction * moveSpeed * Time.deltaTime);
+            }
+
             
-            characterController.Move(direction * moveSpeed * Time.deltaTime);
         }
         else
         {
             playerAnimator.SetBool("isMoving", false);
+            playerAnimator.SetBool("isBack", false);
         }
     }
 
@@ -50,6 +60,14 @@ public class PlayerControl : MonoBehaviour
         if(context.canceled)
         {
             moveInput = new Vector2(0f,0f);
+        }
+    }
+
+    public void playerAttack(InputAction.CallbackContext context)
+    {
+        if(context.performed)
+        {
+            playerAnimator.SetTrigger("attack");
         }
     }
 
