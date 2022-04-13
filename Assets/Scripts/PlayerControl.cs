@@ -5,71 +5,113 @@ using UnityEngine.InputSystem;
 
 public class PlayerControl : MonoBehaviour
 {
-    public float idleTime = 10f;
+    // player movement
     public float moveSpeed = 5f;
     public Vector2 moveInput = new Vector2(0f, 0f);
-    private float idleTimer;
     public CharacterController characterController;
     Animator playerAnimator;
-    
+    PlayerInputAction playerInputAction;
+    Camera playerCamera;
+    //player camera control
+    public float mouseScrollY;
+    [SerializeField] float cameraDistance;
+    [SerializeField] float sensitivity = 10.0f;
+    [SerializeField] float maxCameraDistance = 100f;
+    [SerializeField] float minCameraDistance = 5f;
+
+    // player attack
+    private void Awake()
+    {
+        playerInputAction = new PlayerInputAction();
+
+        playerInputAction.Player.Move.performed += moveValue => moveInput = moveValue.ReadValue<Vector2>();
+        playerInputAction.Player.Move.canceled += moveValue => moveInput = moveValue.ReadValue<Vector2>();
+       
+        playerInputAction.Player.Zoom.performed += scrollValue => mouseScrollY = scrollValue.ReadValue<float>();
+        
+    }
+
+    #region - Enable / Disable -
+    private void OnEnable()
+    {
+        playerInputAction.Enable();
+    }
+
+    private void OnDisable()
+    {
+        playerInputAction.Disable();
+    }
+
+    #endregion
     // Start is called before the first frame update
     void Start()
     {
+        // assign gameobjects
         characterController = GetComponent<CharacterController>();
         playerAnimator = GetComponent<Animator>();
-        idleTimer = idleTime;
+        playerCamera = GetComponentInChildren<Camera>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // if the player idled too long , animator will play looking around animation instead.
-        idleTimer -= Time.deltaTime;
-        if(idleTimer < 0){
-            playerAnimator.SetTrigger("IdleLong");
-            idleTimer = idleTime;
-        }
+        if(moveInput.magnitude != 0)
+        {
+            Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
 
-        Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-
-        if(direction.magnitude >= 0.1f){
-            if(moveInput.y < 0)
+            if (direction.magnitude >= 0.1f)
             {
-                playerAnimator.SetBool("isBack", true);
-                characterController.Move(direction * moveSpeed * 0.3f * Time.deltaTime);
-            }
-            else
-            {
-                playerAnimator.SetBool("isMoving", true);
-                characterController.Move(direction * moveSpeed * Time.deltaTime);
-            }
+                float constant = 1.0f;
+                // player is moving backwards
+                if (moveInput.y < 0)
+                {
+                    playerAnimator.Play("walkBack");
+                    constant = 0.3f;
+                }
+                // player strafe left or right
+                else if (moveInput.x != 0)
+                {
+                    if (moveInput.x < 0)
+                    {
+                        playerAnimator.Play("Left_Strafe");
+                    }
+                    else
+                    {
+                        playerAnimator.Play("Right_Strafe");
+                    }
 
+                }
+                // player move forward
+                else
+                {
+                    playerAnimator.Play("walkFront");
+                }
+
+                characterController.Move(direction * moveSpeed * constant * Time.deltaTime);
+            }
             
         }
         else
         {
-            playerAnimator.SetBool("isMoving", false);
-            playerAnimator.SetBool("isBack", false);
+            playerAnimator.Play("idle");
         }
-    }
 
-    public void playerMove(InputAction.CallbackContext context) {
-        if(context.performed){
-            moveInput = (context.ReadValue<Vector2>());
-        }
-        if(context.canceled)
+        // camera zoom
+        if (mouseScrollY != 0)
         {
-            moveInput = new Vector2(0f,0f);
-        }
-    }
+            float distance = Vector3.Distance(transform.position, playerCamera.transform.position);
 
-    public void playerAttack(InputAction.CallbackContext context)
-    {
-        if(context.performed)
-        {
-            playerAnimator.SetTrigger("attack");
-        }
-    }
+            if ((mouseScrollY < 0 && distance > maxCameraDistance) || (mouseScrollY > 0 && distance < minCameraDistance))
+            {
 
-    
+            }
+            else
+            {
+                playerCamera.transform.position = Vector3.MoveTowards(playerCamera.transform.position, transform.position, mouseScrollY * sensitivity * Time.deltaTime);
+            }
+
+        }
+
+        // player attack
+    }    
 }
