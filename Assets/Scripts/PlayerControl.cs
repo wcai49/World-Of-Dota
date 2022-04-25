@@ -14,10 +14,15 @@ public class PlayerControl : MonoBehaviour
     Camera playerCamera;
     //player camera control
     public float mouseScrollY;
-    [SerializeField] float cameraDistance;
-    [SerializeField] float sensitivity = 10.0f;
+    public float mouseRotateVelocity = 1.0f;
+    public float camDistance;
+    public Vector2 mouseDrag = new Vector2(0f, 0f);
+    [SerializeField] float sensitivity = 8.0f;
     [SerializeField] float maxCameraDistance = 100f;
     [SerializeField] float minCameraDistance = 5f;
+    public float leftMouse = 0;
+    public Vector2 mousePosition = new Vector2(0f, 0f);
+    private Vector3 previousCamPosition;
 
     // player attack
     private void Awake()
@@ -29,6 +34,15 @@ public class PlayerControl : MonoBehaviour
        
         playerInputAction.Player.Zoom.performed += scrollValue => mouseScrollY = scrollValue.ReadValue<float>();
         
+        playerInputAction.Player.Look.performed += dragValue => mouseDrag = dragValue.ReadValue<Vector2>();
+        playerInputAction.Player.Look.canceled += dragValue => mouseDrag = dragValue.ReadValue<Vector2>();
+
+
+        playerInputAction.Player.Fire.performed += leftMouseDown => leftMouse = leftMouseDown.ReadValue<float>();
+        playerInputAction.Player.Fire.canceled += leftMouseDown => leftMouse = leftMouseDown.ReadValue<float>();
+
+        playerInputAction.Player.MousePosition.performed += mouseCurrent => mousePosition = mouseCurrent.ReadValue<Vector2>();
+
     }
 
     #region - Enable / Disable -
@@ -50,6 +64,8 @@ public class PlayerControl : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         playerAnimator = GetComponent<Animator>();
         playerCamera = GetComponentInChildren<Camera>();
+
+        updateCameraDistance();
     }
 
     // Update is called once per frame
@@ -108,10 +124,27 @@ public class PlayerControl : MonoBehaviour
             else
             {
                 playerCamera.transform.position = Vector3.MoveTowards(playerCamera.transform.position, transform.position, mouseScrollY * sensitivity * Time.deltaTime);
+                updateCameraDistance();
             }
 
         }
 
+        // camera rotate around player
+        if (leftMouse == 1 && mouseDrag.magnitude != 0)
+        {
+            Vector3 camDirection = new Vector3(mouseDrag.x, mouseDrag.y, 0);
+
+            playerCamera.transform.position = new Vector3();
+            playerCamera.transform.Rotate(new Vector3(1, 0, 0), -camDirection.y * mouseRotateVelocity);
+            playerCamera.transform.Rotate(new Vector3(0, 1, 0), camDirection.x * mouseRotateVelocity, Space.World);
+            playerCamera.transform.Translate(new Vector3(0, 0, -camDistance));
+        }
+
         // player attack
     }    
+
+    public void updateCameraDistance()
+    {
+        camDistance = Vector3.Distance(transform.position, playerCamera.transform.position);
+    }
 }
