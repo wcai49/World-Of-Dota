@@ -46,7 +46,7 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Fire"",
+                    ""name"": ""Select"",
                     ""type"": ""Button"",
                     ""id"": ""64b60f2d-ff23-48c5-bdb7-506f0e212b99"",
                     ""expectedControlType"": ""Button"",
@@ -71,6 +71,15 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""RightSelect"",
+                    ""type"": ""Button"",
+                    ""id"": ""26151b42-3bb2-4cf2-b584-e5179a1f3dbe"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -224,7 +233,7 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
-                    ""action"": ""Fire"",
+                    ""action"": ""Select"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -247,6 +256,17 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MousePosition"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0c1d8c77-fb9e-4754-9cc6-76e9e658a325"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""RightSelect"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -836,9 +856,10 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
         m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
-        m_Player_Fire = m_Player.FindAction("Fire", throwIfNotFound: true);
+        m_Player_Select = m_Player.FindAction("Select", throwIfNotFound: true);
         m_Player_Zoom = m_Player.FindAction("Zoom", throwIfNotFound: true);
         m_Player_MousePosition = m_Player.FindAction("MousePosition", throwIfNotFound: true);
+        m_Player_RightSelect = m_Player.FindAction("RightSelect", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -912,18 +933,20 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
     private IPlayerActions m_PlayerActionsCallbackInterface;
     private readonly InputAction m_Player_Move;
     private readonly InputAction m_Player_Look;
-    private readonly InputAction m_Player_Fire;
+    private readonly InputAction m_Player_Select;
     private readonly InputAction m_Player_Zoom;
     private readonly InputAction m_Player_MousePosition;
+    private readonly InputAction m_Player_RightSelect;
     public struct PlayerActions
     {
         private @PlayerInputAction m_Wrapper;
         public PlayerActions(@PlayerInputAction wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_Player_Move;
         public InputAction @Look => m_Wrapper.m_Player_Look;
-        public InputAction @Fire => m_Wrapper.m_Player_Fire;
+        public InputAction @Select => m_Wrapper.m_Player_Select;
         public InputAction @Zoom => m_Wrapper.m_Player_Zoom;
         public InputAction @MousePosition => m_Wrapper.m_Player_MousePosition;
+        public InputAction @RightSelect => m_Wrapper.m_Player_RightSelect;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -939,15 +962,18 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
                 @Look.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLook;
                 @Look.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLook;
                 @Look.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnLook;
-                @Fire.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnFire;
-                @Fire.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnFire;
-                @Fire.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnFire;
+                @Select.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnSelect;
+                @Select.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnSelect;
+                @Select.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnSelect;
                 @Zoom.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnZoom;
                 @Zoom.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnZoom;
                 @Zoom.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnZoom;
                 @MousePosition.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMousePosition;
                 @MousePosition.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMousePosition;
                 @MousePosition.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnMousePosition;
+                @RightSelect.started -= m_Wrapper.m_PlayerActionsCallbackInterface.OnRightSelect;
+                @RightSelect.performed -= m_Wrapper.m_PlayerActionsCallbackInterface.OnRightSelect;
+                @RightSelect.canceled -= m_Wrapper.m_PlayerActionsCallbackInterface.OnRightSelect;
             }
             m_Wrapper.m_PlayerActionsCallbackInterface = instance;
             if (instance != null)
@@ -958,15 +984,18 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
                 @Look.started += instance.OnLook;
                 @Look.performed += instance.OnLook;
                 @Look.canceled += instance.OnLook;
-                @Fire.started += instance.OnFire;
-                @Fire.performed += instance.OnFire;
-                @Fire.canceled += instance.OnFire;
+                @Select.started += instance.OnSelect;
+                @Select.performed += instance.OnSelect;
+                @Select.canceled += instance.OnSelect;
                 @Zoom.started += instance.OnZoom;
                 @Zoom.performed += instance.OnZoom;
                 @Zoom.canceled += instance.OnZoom;
                 @MousePosition.started += instance.OnMousePosition;
                 @MousePosition.performed += instance.OnMousePosition;
                 @MousePosition.canceled += instance.OnMousePosition;
+                @RightSelect.started += instance.OnRightSelect;
+                @RightSelect.performed += instance.OnRightSelect;
+                @RightSelect.canceled += instance.OnRightSelect;
             }
         }
     }
@@ -1125,9 +1154,10 @@ public partial class @PlayerInputAction : IInputActionCollection2, IDisposable
     {
         void OnMove(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
-        void OnFire(InputAction.CallbackContext context);
+        void OnSelect(InputAction.CallbackContext context);
         void OnZoom(InputAction.CallbackContext context);
         void OnMousePosition(InputAction.CallbackContext context);
+        void OnRightSelect(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

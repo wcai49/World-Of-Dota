@@ -24,7 +24,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Fire",
+                    "name": "Select",
                     "type": "Button",
                     "id": "64b60f2d-ff23-48c5-bdb7-506f0e212b99",
                     "expectedControlType": "Button",
@@ -49,6 +49,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "RightSelect",
+                    "type": "Button",
+                    "id": "26151b42-3bb2-4cf2-b584-e5179a1f3dbe",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -202,7 +211,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "Fire",
+                    "action": "Select",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -225,6 +234,17 @@
                     "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "MousePosition",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0c1d8c77-fb9e-4754-9cc6-76e9e658a325",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "RightSelect",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

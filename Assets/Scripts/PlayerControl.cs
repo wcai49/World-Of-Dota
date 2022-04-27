@@ -3,46 +3,52 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
+/* TODO:
+    1. Re-consider why the heck that there is an empty if statement for zoom in/out functionality;
+    2. Debug: why after using right click to rotate player, then left click to play around with camera causes a screen shake, TERRIBLE.
+ */
+
 public class PlayerControl : MonoBehaviour
 {
     // player movement
     public float moveSpeed = 5f;
     public Vector2 moveInput = new Vector2(0f, 0f);
+    
+    // camera control
+    public Vector2 mouseDrag = new Vector2(0f, 0f);
+    public float mouseScrollY;
+    public float mouseRotateVelocity = 1.0f;
+    public float camDistance;
+    public float leftMouse = 0;
+    public float rightMouse = 0;
+    [SerializeField] float sensitivity = 8.0f;
+    [SerializeField] float maxCameraDistance = 100f;
+    [SerializeField] float minCameraDistance = 5f;
+    
+    // sign components
     public CharacterController characterController;
     Animator playerAnimator;
     PlayerInputAction playerInputAction;
     Camera playerCamera;
-    //player camera control
-    public float mouseScrollY;
-    public float mouseRotateVelocity = 1.0f;
-    public float camDistance;
-    public Vector2 mouseDrag = new Vector2(0f, 0f);
-    [SerializeField] float sensitivity = 8.0f;
-    [SerializeField] float maxCameraDistance = 100f;
-    [SerializeField] float minCameraDistance = 5f;
-    public float leftMouse = 0;
-    public Vector2 mousePosition = new Vector2(0f, 0f);
-    private Vector3 previousCamPosition;
-
-    // player attack
+   
     private void Awake()
     {
         playerInputAction = new PlayerInputAction();
-
+        // bind WASD movement
         playerInputAction.Player.Move.performed += moveValue => moveInput = moveValue.ReadValue<Vector2>();
         playerInputAction.Player.Move.canceled += moveValue => moveInput = moveValue.ReadValue<Vector2>();
-       
+        // bind mouse scroll       
         playerInputAction.Player.Zoom.performed += scrollValue => mouseScrollY = scrollValue.ReadValue<float>();
-        
+        // bind mouse movement
         playerInputAction.Player.Look.performed += dragValue => mouseDrag = dragValue.ReadValue<Vector2>();
         playerInputAction.Player.Look.canceled += dragValue => mouseDrag = dragValue.ReadValue<Vector2>();
-
-
-        playerInputAction.Player.Fire.performed += leftMouseDown => leftMouse = leftMouseDown.ReadValue<float>();
-        playerInputAction.Player.Fire.canceled += leftMouseDown => leftMouse = leftMouseDown.ReadValue<float>();
-
-        playerInputAction.Player.MousePosition.performed += mouseCurrent => mousePosition = mouseCurrent.ReadValue<Vector2>();
-
+        // bind mouse left click
+        playerInputAction.Player.Select.performed += leftMouseDown => leftMouse = leftMouseDown.ReadValue<float>();
+        playerInputAction.Player.Select.canceled += leftMouseDown => leftMouse = leftMouseDown.ReadValue<float>();
+        // bind mouse right click
+        playerInputAction.Player.RightSelect.performed += rightMouseDown => rightMouse = rightMouseDown.ReadValue<float>();
+        playerInputAction.Player.RightSelect.canceled += rightMouseDown => rightMouse = rightMouseDown.ReadValue<float>();
     }
 
     #region - Enable / Disable -
@@ -73,39 +79,35 @@ public class PlayerControl : MonoBehaviour
     {
         if(moveInput.magnitude != 0)
         {
-            Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
-
-            if (direction.magnitude >= 0.1f)
+            // player is moving backwards
+            if (moveInput.y < 0)
             {
-                float constant = 1.0f;
-                // player is moving backwards
-                if (moveInput.y < 0)
-                {
-                    playerAnimator.Play("walkBack");
-                    constant = 0.3f;
-                }
-                // player strafe left or right
-                else if (moveInput.x != 0)
-                {
-                    if (moveInput.x < 0)
-                    {
-                        playerAnimator.Play("Left_Strafe");
-                    }
-                    else
-                    {
-                        playerAnimator.Play("Right_Strafe");
-                    }
+                playerAnimator.Play("walkBack");
+                float backwardSlow = 0.3f;
+                characterController.Move(-transform.forward * moveSpeed * backwardSlow * Time.deltaTime);
 
+            }
+            // player strafe left or right
+            else if (moveInput.x != 0)
+            {
+                if (moveInput.x < 0)
+                {
+                    playerAnimator.Play("Left_Strafe");
+                    characterController.Move(-transform.right * moveSpeed  * Time.deltaTime);
                 }
-                // player move forward
                 else
                 {
-                    playerAnimator.Play("walkFront");
+                    playerAnimator.Play("Right_Strafe");
+                    characterController.Move(transform.right * moveSpeed * Time.deltaTime);
                 }
 
-                characterController.Move(direction * moveSpeed * constant * Time.deltaTime);
             }
-            
+            // player move forward
+            else
+            {
+                playerAnimator.Play("walkFront");
+                characterController.Move(transform.forward * moveSpeed  * Time.deltaTime);
+            }
         }
         else
         {
@@ -140,7 +142,12 @@ public class PlayerControl : MonoBehaviour
             playerCamera.transform.Translate(new Vector3(0, 0, -camDistance));
         }
 
-        // player attack
+        // use right click hold to turn left right
+        if (rightMouse == 1 && mouseDrag.magnitude != 0)
+        {
+            Vector3 camDirection = new Vector3(mouseDrag.x, mouseDrag.y, 0);
+            transform.Rotate(new Vector3(0, 1, 0), camDirection.x * mouseRotateVelocity);
+        }
     }    
 
     public void updateCameraDistance()
