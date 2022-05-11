@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 
 
 /* TODO:
-    1. Re-consider why the heck that there is an empty if statement for zoom in/out functionality;
-    2. Debug: why after using right click to rotate player, then left click to play around with camera causes a screen shake, TERRIBLE.
+    1. Debug: why after using right click to rotate player, then left click to play around with camera causes a screen shake, TERRIBLE.
+    2. Optimize: player movement code clean.
  */
 
 public class PlayerControl : MonoBehaviour
@@ -14,7 +14,7 @@ public class PlayerControl : MonoBehaviour
     // player movement
     public float moveSpeed = 5f;
     public Vector2 moveInput = new Vector2(0f, 0f);
-    
+            
     // camera control
     public Vector2 mouseDrag = new Vector2(0f, 0f);
     public float mouseScrollY;
@@ -118,17 +118,12 @@ public class PlayerControl : MonoBehaviour
         if (mouseScrollY != 0)
         {
             float distance = Vector3.Distance(transform.position, playerCamera.transform.position);
-
-            if ((mouseScrollY < 0 && distance > maxCameraDistance) || (mouseScrollY > 0 && distance < minCameraDistance))
-            {
-
-            }
-            else
+            
+            if((distance > minCameraDistance && distance < maxCameraDistance) || (mouseScrollY < 0 && distance < maxCameraDistance) || (mouseScrollY > 0 && distance > minCameraDistance))
             {
                 playerCamera.transform.position = Vector3.MoveTowards(playerCamera.transform.position, transform.position, mouseScrollY * sensitivity * Time.deltaTime);
                 updateCameraDistance();
             }
-
         }
 
         // camera rotate around player
